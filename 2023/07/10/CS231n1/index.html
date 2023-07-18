@@ -104,209 +104,81 @@
         
         <p>本系列文章基于CS231n课程，记录自己的学习过程，本文主要介绍图片分类问题以及数据驱动的方法，同时介绍了一个简单的分类器KNN。</p>
 <span id="more"></span>
-
-<hr>
-<h1 id="0-图片分类问题"><a href="#0-图片分类问题" class="headerlink" title="0 图片分类问题"></a>0 图片分类问题</h1><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">图片分类问题就是辨认输入的图片类别的问题，且图片的类别属于事先给定的一个类别组中。尽管这看起来很简单，但这是计算机视觉的一个核心问题，且有很广泛的实际应用。并且，有很多的计算机视觉的问题最终会化简为图片分类问题。举例来说，假设有一个图片分类模型，它对于输入的三通道的图片会预测其属于四个标签（label）的概率（四个标签为 cat， dog，hat，mug）。下图所示的图片是一张248像素宽度，400像素高度的图片，并且有RGB三通道，那么这张图片可以用3<span class="emphasis">*248*</span>400个数字表示，每个数字范围从 0到255，模型的任务就是接受这些数字，然后预测出这些数字代表的标签（label）。</span><br><span class="line"><span class="section"># H1</span></span><br><span class="line"><span class="section">## H2</span></span><br><span class="line"><span class="section">### H3</span></span><br><span class="line"><span class="section">#### H4</span></span><br><span class="line"><span class="section">##### H5</span></span><br><span class="line"><span class="section">###### H6</span></span><br><span class="line"></span><br><span class="line"><span class="section">Alt-H1</span></span><br><span class="line"><span class="section">======</span></span><br><span class="line"></span><br><span class="line"><span class="section">Alt-H2</span></span><br><span class="line"><span class="section">------</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="H1"><a href="#H1" class="headerlink" title="H1"></a>H1</h1><h2 id="H2"><a href="#H2" class="headerlink" title="H2"></a>H2</h2><h3 id="H3"><a href="#H3" class="headerlink" title="H3"></a>H3</h3><h4 id="H4"><a href="#H4" class="headerlink" title="H4"></a>H4</h4><h5 id="H5"><a href="#H5" class="headerlink" title="H5"></a>H5</h5><h6 id="H6"><a href="#H6" class="headerlink" title="H6"></a>H6</h6><p>Alternatively, for H1 and H2, an underline-ish style:</p>
-<h1 id="Alt-H1"><a href="#Alt-H1" class="headerlink" title="Alt-H1"></a>Alt-H1</h1><h2 id="Alt-H2"><a href="#Alt-H2" class="headerlink" title="Alt-H2"></a>Alt-H2</h2><h2 id="Emphasis"><a href="#Emphasis" class="headerlink" title="Emphasis"></a>Emphasis</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Emphasis, aka italics, with <span class="emphasis">*asterisks*</span> or <span class="emphasis">_underscores_</span>.</span><br><span class="line"></span><br><span class="line">Strong emphasis, aka bold, with <span class="strong">**asterisks**</span> or <span class="strong">__underscores__</span>.</span><br><span class="line"></span><br><span class="line">Combined emphasis with <span class="strong">**asterisks and <span class="emphasis">_underscores_</span>**</span>.</span><br><span class="line"></span><br><span class="line">Strikethrough uses two tildes. ~~Scratch this.~~</span><br></pre></td></tr></table></figure>
-
-<p>Emphasis, aka italics, with <em>asterisks</em> or <em>underscores</em>.</p>
-<p>Strong emphasis, aka bold, with <strong>asterisks</strong> or <strong>underscores</strong>.</p>
-<p>Combined emphasis with <strong>asterisks and <em>underscores</em></strong>.</p>
-<p>Strikethrough uses two tildes. <del>Scratch this.</del></p>
-<h2 id="Lists"><a href="#Lists" class="headerlink" title="Lists"></a>Lists</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">1.</span> First ordered list item</span><br><span class="line"><span class="bullet">2.</span> Another item</span><br><span class="line"><span class="bullet">  *</span> Unordered sub-list.</span><br><span class="line"><span class="bullet">1.</span> Actual numbers don&#x27;t matter, just that it&#x27;s a number</span><br><span class="line"><span class="bullet">  1.</span> Ordered sub-list</span><br><span class="line"><span class="bullet">4.</span> And another item.</span><br><span class="line"></span><br><span class="line">   You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we&#x27;ll use three here to also align the raw Markdown).</span><br><span class="line"></span><br><span class="line">   To have a line break without a paragraph, you will need to use two trailing spaces.  </span><br><span class="line">   Note that this line is separate, but within the same paragraph.  </span><br><span class="line">   (This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)</span><br><span class="line"></span><br><span class="line"><span class="bullet">*</span> Unordered list can use asterisks</span><br><span class="line"><span class="bullet">-</span> Or minuses</span><br><span class="line"><span class="bullet">+</span> Or pluses</span><br><span class="line"><span class="bullet">-</span> Paragraph In unordered list</span><br><span class="line"></span><br><span class="line">  For example like this.</span><br><span class="line"></span><br><span class="line">Common Paragraph with some text.</span><br><span class="line">And more text.</span><br></pre></td></tr></table></figure>
-
-<ol>
-<li>First ordered list item</li>
-<li>Another item</li>
-</ol>
-<ul>
-<li>Unordered sub-list.</li>
-</ul>
-<ol>
-<li><p>Actual numbers don’t matter, just that it’s a number</p>
-</li>
-<li><p>Ordered sub-list</p>
-</li>
-<li><p>And another item.</p>
-<p>You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we’ll use three here to also align the raw Markdown).</p>
-<p>To have a line break without a paragraph, you will need to use two trailing spaces.<br>Note that this line is separate, but within the same paragraph.<br>(This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)</p>
-</li>
-</ol>
-<ul>
-<li>Unordered list can use asterisks</li>
-</ul>
-<ul>
-<li>Or minuses</li>
-</ul>
-<ul>
-<li>Or pluses</li>
-</ul>
-<ul>
-<li><p>Paragraph In unordered list</p>
-<p>For example like this.</p>
-</li>
-</ul>
-<p>Common Paragraph with some text.<br>And more text.</p>
-<h2 id="Inline-HTML"><a href="#Inline-HTML" class="headerlink" title="Inline HTML"></a>Inline HTML</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">p</span>&gt;</span></span>To reboot your computer, press <span class="language-xml"><span class="tag">&lt;<span class="name">kbd</span>&gt;</span></span>ctrl<span class="language-xml"><span class="tag">&lt;/<span class="name">kbd</span>&gt;</span></span>+<span class="language-xml"><span class="tag">&lt;<span class="name">kbd</span>&gt;</span></span>alt<span class="language-xml"><span class="tag">&lt;/<span class="name">kbd</span>&gt;</span></span>+<span class="language-xml"><span class="tag">&lt;<span class="name">kbd</span>&gt;</span></span>del<span class="language-xml"><span class="tag">&lt;/<span class="name">kbd</span>&gt;</span></span>.<span class="language-xml"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span><br></pre></td></tr></table></figure>
-
-<p>To reboot your computer, press <kbd>ctrl</kbd>+<kbd>alt</kbd>+<kbd>del</kbd>.</p>
-
-
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">dl</span>&gt;</span></span></span><br><span class="line"><span class="code">    &lt;dt&gt;Definition list&lt;/dt&gt;</span></span><br><span class="line"><span class="code">    &lt;dd&gt;Is something people use sometimes.&lt;/dd&gt;</span></span><br><span class="line"><span class="code"></span></span><br><span class="line"><span class="code">    &lt;dt&gt;Markdown in HTML&lt;/dt&gt;</span></span><br><span class="line"><span class="code">    &lt;dd&gt;Does *not* work **very** well. Use HTML &lt;em&gt;tags&lt;/em&gt;.&lt;/dd&gt;</span></span><br><span class="line"><span class="code">&lt;/dl&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<dl>
-    <dt>Definition list</dt>
-    <dd>Is something people use sometimes.</dd>
-
-<pre><code>&lt;dt&gt;Markdown in HTML&lt;/dt&gt;
-&lt;dd&gt;Does *not* work **very** well. Use HTML &lt;em&gt;tags&lt;/em&gt;.&lt;/dd&gt;
-</code></pre>
-</dl>
-
-
-<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">I&#x27;m an inline-style link</span>](<span class="link">https://www.google.com</span>)</span><br><span class="line"></span><br><span class="line">[<span class="string">I&#x27;m an inline-style link with title</span>](<span class="link">https://www.google.com &quot;Google&#x27;s Homepage&quot;</span>)</span><br><span class="line"></span><br><span class="line">[<span class="string">I&#x27;m a reference-style link</span>][<span class="symbol">Arbitrary case-insensitive reference text</span>]</span><br><span class="line"></span><br><span class="line">[<span class="string">I&#x27;m a relative reference to a repository file</span>](<span class="link">../blob/master/LICENSE</span>)</span><br><span class="line"></span><br><span class="line">[<span class="string">You can use numbers for reference-style link definitions</span>][<span class="symbol">1</span>]</span><br><span class="line"></span><br><span class="line">Or leave it empty and use the [link text itself]</span><br><span class="line"></span><br><span class="line">Some text to show that the reference links can follow later.</span><br><span class="line"></span><br><span class="line">[<span class="symbol">arbitrary case-insensitive reference text</span>]: <span class="link">https://hexo.io</span></span><br><span class="line">[<span class="symbol">1</span>]: <span class="link">https://hexo.io/docs/</span></span><br><span class="line">[<span class="symbol">link text itself</span>]: <span class="link">https://hexo.io/api/</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://www.google.com/">I’m an inline-style link</a></p>
-<p><a target="_blank" rel="noopener" href="https://www.google.com/" title="Google&#39;s Homepage">I’m an inline-style link with title</a></p>
-<p><a target="_blank" rel="noopener" href="https://hexo.io/">I’m a reference-style link</a></p>
-<p><a href="../blob/master/LICENSE">I’m a relative reference to a repository file</a></p>
-<p><a target="_blank" rel="noopener" href="https://hexo.io/docs/">You can use numbers for reference-style link definitions</a></p>
-<p>Or leave it empty and use the <a target="_blank" rel="noopener" href="https://hexo.io/api/">link text itself</a></p>
-<p>Some text to show that the reference links can follow later.</p>
-<h2 id="Images"><a href="#Images" class="headerlink" title="Images"></a>Images</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">hover to see the title text:</span><br><span class="line"></span><br><span class="line">Inline-style:</span><br><span class="line"></span><br><span class="line">![<span class="string">alt text</span>](<span class="link">https://hexo.io/icon/favicon-196x196.png &quot;Logo Title Text 1&quot;</span>)</span><br><span class="line"></span><br><span class="line">Reference-style:</span><br><span class="line">![<span class="string">alt text</span>][<span class="symbol">logo</span>]</span><br><span class="line"></span><br><span class="line">[<span class="symbol">logo</span>]: <span class="link">https://hexo.io/icon/favicon-196x196.png &quot;Logo Title Text 2&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>hover to see the title text:</p>
-<p>Inline-style:</p>
-<p><img src="https://hexo.io/icon/favicon-196x196.png" alt="alt text" title="Logo Title Text 1"></p>
-<p>Reference-style:<br><img src="https://hexo.io/icon/favicon-196x196.png" alt="alt text" title="Logo Title Text 2"></p>
-<h2 id="Code-and-Syntax-Highlighting"><a href="#Code-and-Syntax-Highlighting" class="headerlink" title="Code and Syntax Highlighting"></a>Code and Syntax Highlighting</h2><p>Inline <code>code</code> has <code>back-ticks around</code> it.</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> s = <span class="string">&quot;JavaScript syntax highlighting&quot;</span>;</span><br><span class="line"><span class="title function_">alert</span>(s);</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">s = <span class="string">&quot;Python syntax highlighting&quot;</span></span><br><span class="line"><span class="built_in">print</span> s</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">No language indicated, so no syntax highlighting.</span><br><span class="line">But let&#x27;s throw in a &lt;b&gt;tag&lt;/b&gt;.</span><br></pre></td></tr></table></figure>
-
-<h2 id="Tables"><a href="#Tables" class="headerlink" title="Tables"></a>Tables</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">|                |ASCII                          |HTML                         |</span><br><span class="line">|----------------|-------------------------------|-----------------------------|</span><br><span class="line">|Single backticks|<span class="code">`&#x27;Isn&#x27;t this fun?&#x27;`</span>            |&#x27;Isn&#x27;t this fun?&#x27;            |</span><br><span class="line">|Quotes          |<span class="code">`&quot;Isn&#x27;t this fun?&quot;`</span>            |&quot;Isn&#x27;t this fun?&quot;            |</span><br><span class="line">|Dashes          |<span class="code">`-- is en-dash, --- is em-dash`</span>|-- is en-dash, --- is em-dash|</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th></th>
-<th>ASCII</th>
-<th>HTML</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>Single backticks</td>
-<td><code>&#39;Isn&#39;t this fun?&#39;</code></td>
-<td>‘Isn’t this fun?’</td>
-</tr>
-<tr>
-<td>Quotes</td>
-<td><code>&quot;Isn&#39;t this fun?&quot;</code></td>
-<td>“Isn’t this fun?”</td>
-</tr>
-<tr>
-<td>Dashes</td>
-<td><code>-- is en-dash, --- is em-dash</code></td>
-<td>– is en-dash, — is em-dash</td>
-</tr>
-</tbody></table>
-<p>Colons can be used to align columns.</p>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">| Tables        | Are           | Cool  |</span><br><span class="line">| ------------- |:-------------:| -----:|</span><br><span class="line">| col 3 is      | right-aligned |  |</span><br><span class="line">| col 2 is      | centered      |    |</span><br><span class="line">| zebra stripes | are neat      |   </span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>Tables</th>
-<th align="center">Are</th>
-<th align="right">Cool</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>col 3 is</td>
-<td align="center">right-aligned</td>
-<td align="right"></td>
-</tr>
-<tr>
-<td>col 2 is</td>
-<td align="center">centered</td>
-<td align="right"></td>
-</tr>
-<tr>
-<td>zebra stripes</td>
-<td align="center">are neat</td>
-<td align="right"></td>
-</tr>
-</tbody></table>
-<p>The outer pipes (|) are optional, and you don’t need to make the raw Markdown line up prettily. You can also use inline Markdown.</p>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Markdown | Less | Pretty</span><br><span class="line">--- | --- | ---</span><br><span class="line"><span class="emphasis">*Still*</span> | <span class="code">`renders`</span> | <span class="strong">**nicely**</span></span><br><span class="line">1 | 2 | 3</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>Markdown</th>
-<th>Less</th>
-<th>Pretty</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><em>Still</em></td>
-<td><code>renders</code></td>
-<td><strong>nicely</strong></td>
-</tr>
-<tr>
-<td>1</td>
-<td>2</td>
-<td>3</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p>You can find more information about <strong>LaTeX</strong> mathematical expressions <a target="_blank" rel="noopener" href="https://math.meta.stackexchange.com/questions/5020/mathjax-basic-tutorial-and-quick-reference">here</a>.</p>
-</blockquote>
-<h2 id="Blockquotes"><a href="#Blockquotes" class="headerlink" title="Blockquotes"></a>Blockquotes</h2><blockquote>
-<p>Blockquotes are very handy in email to emulate reply text.<br>This line is part of the same quote.</p>
-</blockquote>
-<p>Quote break.</p>
-<blockquote>
-<p>This is a very long line that will still be quoted properly when it wraps. Oh boy let’s keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can <em>put</em> <strong>Markdown</strong> into a blockquote.</p>
-</blockquote>
-<h2 id="Horizontal-Rule"><a href="#Horizontal-Rule" class="headerlink" title="Horizontal Rule"></a>Horizontal Rule</h2><p>Three or more…</p>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line"></span><br><span class="line">Hyphens</span><br><span class="line"></span><br><span class="line"><span class="strong">***</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">Asterisks</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">___</span></span><br><span class="line"><span class="strong"></span></span><br><span class="line"><span class="strong">Underscores</span></span><br></pre></td></tr></table></figure>
-
-<hr>
-<p>Hyphens</p>
-<hr>
-<p>Asterisks</p>
-<hr>
-<p>Underscores</p>
-<h2 id="Line-Breaks"><a href="#Line-Breaks" class="headerlink" title="Line Breaks"></a>Line Breaks</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Here&#x27;s a line for us to start with.</span><br><span class="line"></span><br><span class="line">This line is separated from the one above by two newlines, so it will be a <span class="emphasis">*separate paragraph*</span>.</span><br><span class="line"></span><br><span class="line">This line is also a separate paragraph, but...</span><br><span class="line">This line is only separated by a single newline, so it&#x27;s a separate line in the <span class="emphasis">*same paragraph*</span>.</span><br></pre></td></tr></table></figure>
-
-
-<p>Here’s a line for us to start with.</p>
-<p>This line is separated from the one above by two newlines, so it will be a <em>separate paragraph</em>.</p>
-<p>This line is also a separate paragraph, but…<br>This line is only separated by a single newline, so it’s a separate line in the <em>same paragraph</em>.</p>
-<hr>
-<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">This is a regular paragraph.</span><br><span class="line"></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">table</span>&gt;</span></span></span><br><span class="line"><span class="code">    &lt;tr&gt;</span></span><br><span class="line"><span class="code">        &lt;td&gt;Foo&lt;/td&gt;</span></span><br><span class="line"><span class="code">    &lt;/tr&gt;</span></span><br><span class="line"><span class="code">&lt;/table&gt;</span></span><br><span class="line"><span class="code"></span></span><br><span class="line">This is another regular paragraph.</span><br></pre></td></tr></table></figure>
-
-<p>This is a regular paragraph.</p>
-<table>
-    <tr>
-        <td>Foo</td>
-    </tr>
-</table>
-
-<p>This is another regular paragraph.</p>
-<h2 id="Youtube-videos"><a href="#Youtube-videos" class="headerlink" title="Youtube videos"></a>Youtube videos</h2><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;https://www.youtube.com/watch?feature=player_embedded&amp;v=ARted4RniaU</span></span></span></span><br><span class="line"><span class="string"><span class="tag"><span class="language-xml">&quot;</span> <span class="attr">target</span>=<span class="string">&quot;_blank&quot;</span>&gt;</span></span><span class="language-xml"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;https://img.youtube.com/vi/ARted4RniaU/0.jpg&quot;</span></span></span></span><br><span class="line"><span class="tag"><span class="language-xml"><span class="attr">alt</span>=<span class="string">&quot;IMAGE ALT TEXT HERE&quot;</span> <span class="attr">width</span>=<span class="string">&quot;240&quot;</span> <span class="attr">height</span>=<span class="string">&quot;180&quot;</span> <span class="attr">border</span>=<span class="string">&quot;10&quot;</span> /&gt;</span></span><span class="language-xml"><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">Pure markdown version:</span><br><span class="line"></span><br><span class="line">[<span class="string">![IMAGE ALT TEXT HERE</span>](<span class="link">https://img.youtube.com/vi/ARted4RniaU/0.jpg</span>)](<span class="link">https://www.youtube.com/watch?v=ARted4RniaU</span>)</span><br></pre></td></tr></table></figure>
-
-<p><a href="https://www.youtube.com/watch?feature=player_embedded&v=ARted4RniaU
-" target="_blank"><img src="https://img.youtube.com/vi/ARted4RniaU/0.jpg"
-alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a></p>
-<p>Pure markdown version:</p>
-<p><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=ARted4RniaU"><img src="https://img.youtube.com/vi/ARted4RniaU/0.jpg" alt="IMAGE ALT TEXT HERE"></a></p>
+<hr />
+<h1 id="图片分类问题">0 图片分类问题</h1>
+<p>图片分类问题就是辨认输入的图片类别的问题，且图片的类别属于事先给定的一个类别组中。尽管这看起来很简单，但这是计算机视觉的一个核心问题，且有很广泛的实际应用。并且，有很多的计算机视觉的问题最终会化简为图片分类问题。举例来说，假设有一个图片分类模型，它对于输入的三通道的图片会预测其属于四个标签（label）的概率（四个标签为
+cat，
+dog，hat，mug）。下图所示的图片是一张248像素宽度，400像素高度的图片，并且有RGB三通道，那么这张图片可以用3<em>248</em>400个数字表示，每个数字范围从
+0到255，模型的任务就是接受这些数字，然后预测出这些数字代表的标签（label）。</p>
+<p><img src="/CS231n/1/1.jpg" /></p>
+<h1 id="数据驱动方法">1. 数据驱动方法</h1>
+<h2 id="当前的挑战">1.1 当前的挑战</h2>
+<p>虽然图片识别对于人来说是一件轻松的事情，但是对于计算机来说，由于接受的是一串数字，对于同一个物体，表示这个物体的数字可能会有很大的不同，所以使用算法来实现这一任务还是有很多挑战的，具体来说：
+<em>观察角度的变化 Viewpoint
+variation：一句诗可以很好概括，“不识庐山真面目，只缘身在此山中”
+</em>尺度变换 Scale variation：图片大小比例的变化也会使得数据发生改变
+<em>变形
+Deformation：很多物体的外形不是一成不变的，比如众所周知，猫是液体
+</em>遮挡 Occlusion：要被识别的物体可能被遮挡，只露出一部分 <em>光线条件
+Illumination conditions：环境光线的变化对物体的图片也会有很大的影响
+</em>背景干扰 Background
+clutter：如果物体和背景有很相似的颜色和纹路，那么就很难被识别 *物种变异
+Intra-class variation：同一物种可能也有差异很大的形态</p>
+<p><img src="/CS231n/1/2.jpg" /></p>
+<h2 id="数据驱动方法-1">1.2 数据驱动方法</h2>
+<p>那么我们如何设计算法去分辨不同的类别呢？我们不会去设计一个特定的算法来解决这样的问题，而是将大量带有标签的数据送给一个模型，让模型自己学习，这种方式就成为数据驱动方法，因为它依赖于一个带有标签的数据集合。</p>
+<p>所以通常图片识别任务的流水线如下：</p>
+<p><em>输入：输入N张图片，图片的总类别数量为K，我们称这一部分的数据为训练集
+</em>学习：使用模型在训练集中学习，提取每一个种类的特征。我们称之为
+训练一个模型或者训练一个分类器
+*评估：在最后，我们需要评估这个训练的模型好坏。这时需要一个之前从来都没使用过的新数据集（保证类别也在K类之中），然后在新的数据集上预测每张图片的种类，我们期望的是分类正确的图片越多越好</p>
+<h1 id="最近邻域分类器-nn">2. 最近邻域分类器 NN</h1>
+<h2 id="数据集和原理">2.1 数据集和原理</h2>
+<p>首先我们来介绍一下最近邻域分类器，这是一个十分简单并且不常用于分类的算法，但是通过这个算法，
+我们也可以大致了解解决图片分类问题的大致方法。本次使用的数据集是
+CIFAR-10，这是一个有名的公开图片数据集，由60000张3<em>32</em>32的图片组成，一共有10个种类，一般我们将其中的50000张作为训练集，10000张作为测试集，下图左就是10个类别的部分图片。</p>
+<p><img src="/CS231n/1/3.jpg" /></p>
+<p>现在我们的训练集中就有了50000张图片，每个类别5000张，对于测试集10000张图片中的每一张图片，我们要做的是将其与训练集中的每一张图片进行比较，然后将这种图片与训练集中最相似的图片归为一类，上图右就是部分分类后的结果，可以发现，存在很多的误分类，原因在于虽然图片的种类不同，但是两种图片的颜色图案等非常类似，就容易被归为一类。</p>
+<p>那么在最近邻域算法中，我们衡量两张图片是否相近的标准是什么呢？一种最简单的标准就是
+L1距离，假设我们将两张图片分别表示为两个向量<span
+class="math inline">\(I_1\)</span>,<span
+class="math inline">\(I_2\)</span>，那么L1距离的定义如下： <span
+class="math display">\[d_1(I_1,I_2) = \sum_p\vert I_1^p - I_2^p
+\vert\]</span></p>
+<p>一个简单的计算流程演示： <img src="/CS231n/1/4.jpg" /> <span
+class="math display">\[d_2(I_1,I_2) = \sqrt\sum_p(I_1^p -
+I_2^p)^2\]</span></p>
+<h2 id="代码实现">2.2 代码实现</h2>
+<p>首先我们需要处理 CIFAR-10 数据集，将其以四个数组的形式表示，分别为
+训练集数据、训练集标签、测试集数据、测试集标签，下面的代码中 Xtr
+表示训练集数据，Ytr
+表示训练集标签，得到数据后将其拉成一条向量，便于计算。</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">Xtr, Ytr, Xte, Yte = load<span class="emphasis">_CIFAR10(&#x27;data/cifar10/&#x27;) </span></span><br><span class="line"><span class="emphasis">Xtr_</span>rows = Xtr.reshape(Xtr.shape[0], 32 * 32 * 3) # Xtr<span class="emphasis">_rows becomes 50000 x 3072</span></span><br><span class="line"><span class="emphasis">Xte_</span>rows = Xte.reshape(Xte.shape[0], 32 * 32 * 3) # Xte<span class="emphasis">_rows becomes 10000 x 3072</span></span><br><span class="line"><span class="emphasis"></span></span><br></pre></td></tr></table></figure>
+<p>下面是训练和评估模型的流程：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">nn = NearestNeighbor() # create a Nearest Neighbor classifier class</span><br><span class="line">nn.train(Xtr<span class="emphasis">_rows, Ytr) # train the classifier on the training images and labels</span></span><br><span class="line"><span class="emphasis">Yte_</span>predict = nn.predict(Xte<span class="emphasis">_rows) # predict labels on the test images</span></span><br><span class="line"><span class="emphasis">print &#x27;accuracy: %f&#x27; % ( np.mean(Yte_</span>predict == Yte) )</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>其中，NearestNeighor 类的定义如下：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">import numpy as np</span><br><span class="line"> </span><br><span class="line">class NearestNeighbor(object):</span><br><span class="line">  def <span class="strong">__init__</span>(self):</span><br><span class="line"><span class="code">    pass</span></span><br><span class="line"><span class="code"> </span></span><br><span class="line"><span class="code">  def train(self, X, y):</span></span><br><span class="line"><span class="code">    &quot;&quot;&quot; X is N x D where each row is an example. Y is 1-dimension of size N &quot;&quot;&quot;</span></span><br><span class="line"><span class="code">    # the nearest neighbor classifier simply remembers all the training data</span></span><br><span class="line"><span class="code">    self.Xtr = X</span></span><br><span class="line"><span class="code">    self.ytr = y</span></span><br><span class="line"><span class="code"> </span></span><br><span class="line"><span class="code">  def predict(self, X):</span></span><br><span class="line"><span class="code">    &quot;&quot;&quot; X is N x D where each row is an example we wish to predict label for &quot;&quot;&quot;</span></span><br><span class="line"><span class="code">    num_test = X.shape[0]</span></span><br><span class="line"><span class="code">    # lets make sure that the output type matches the input type</span></span><br><span class="line"><span class="code">    Ypred = np.zeros(num_test, dtype = self.ytr.dtype)</span></span><br><span class="line"><span class="code"> </span></span><br><span class="line"><span class="code">    # loop over all test rows</span></span><br><span class="line"><span class="code">    for i in range(num_test):</span></span><br><span class="line"><span class="code">      # find the nearest training image to the i&#x27;th test image</span></span><br><span class="line"><span class="code">      # using the L1 distance (sum of absolute value differences)</span></span><br><span class="line"><span class="code">      distances = np.sum(np.abs(self.Xtr - X[i,:]), axis = 1)</span></span><br><span class="line"><span class="code">      min_index = np.argmin(distances) # get the index with smallest distance</span></span><br><span class="line"><span class="code">      Ypred[i] = self.ytr[min_index] # predict the label of the nearest example</span></span><br><span class="line"><span class="code"> </span></span><br><span class="line"><span class="code">    return Ypred</span></span><br><span class="line"><span class="code"></span></span><br></pre></td></tr></table></figure>
+<p>如果要是用 L2 距离，则只需要将距离计算公式改写为 distances =
+np.sqrt(np.sum(np.square(self.Xtr - X[i,:]), axis = 1))。</p>
+<p>L1和L2距离比较：
+在某一维度上，如果两个点相距较远，则L2距离比L1距离更大，若两个点相距很近，则反之，这是由于平方导致的。所以L2距离对距离差异的容忍度更差。</p>
+<h2 id="k-邻近邻域算法knn">2.3 K-邻近邻域算法（KNN）</h2>
+<p>可以注意到，前面的最近邻域算法只关注和预测图片最相近的一张训练集中的图片，不同于最近邻域算法，KNN算法会关注与预测图片最相近的K张图片，如果K=1则KNN就是最近邻域算法，这里的K是超参数，由我们自己设置。具体的流程是，分别计算预测样本和训练集中所有数据的距离，取前K个距离最相近的，应用投票法，票数最多的就当做预测种类。直观来看，从最大1个变成最大的K个可以使得分类器对于异常值有更好的抵抗能力。如下图所示，最左边的是原始数据，一共有三种类别，分别用三种颜色表示，中间是NN分类器，最右边是5-NN分类器，可以看到有很多空白的部分，这表示这些地方属于模糊不清的（投票结果至少有两个种类相同）</p>
+<p><img src="/CS231n/1/5.jpg" /></p>
+<h2 id="超参数选择">2.4 超参数选择</h2>
+<p>所有需要我们自行选择的，而不是由算法自学习得到的参数都是超参数，比如
+KNN 中K的选择以及使用 L1 还是 L2
+距离，这些都属于超参数。超参数对模型好坏的印影响也十分巨大，最简单的办法就是选择所有超参数的可能组合，然后逐一验证优劣，选择最好的一组超参数。但是需要注意的是，我们不能使用测试集或者训练集来选择超参数，因为会有过拟合的风险。所有我们需要一组新的数据，我们称为验证集，一般是从训练集中划分出一部分得到。测试集只能在整个训练过程的最后使用一次。</p>
+<p>下面是选择超参数K的过程：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="section"># assume we have Xtr<span class="emphasis">_rows, Ytr, Xte_</span>rows, Yte as before</span></span><br><span class="line"><span class="section"># recall Xtr<span class="emphasis">_rows is 50,000 x 3072 matrix</span></span></span><br><span class="line"><span class="emphasis"><span class="section">Xval_</span>rows = Xtr<span class="emphasis">_rows[:1000, :] # take first 1000 for validation</span></span></span><br><span class="line"><span class="emphasis"><span class="section">Yval = Ytr[:1000]</span></span></span><br><span class="line"><span class="emphasis"><span class="section">Xtr_</span>rows = Xtr<span class="emphasis">_rows[1000:, :] # keep last 49,000 for train</span></span></span><br><span class="line"><span class="emphasis"><span class="section">Ytr = Ytr[1000:]</span></span></span><br><span class="line"><span class="emphasis"><span class="section"> </span></span></span><br><span class="line"><span class="emphasis"><span class="section"># find hyperparameters that work best on the validation set</span></span></span><br><span class="line"><span class="emphasis"><span class="section">validation_</span>accuracies = []</span></span><br><span class="line">for k in [1, 3, 5, 10, 20, 50, 100]:</span><br><span class="line"> </span><br><span class="line">  # use a particular value of k and evaluation on validation data</span><br><span class="line">  nn = NearestNeighbor()</span><br><span class="line">  nn.train(Xtr<span class="emphasis">_rows, Ytr)</span></span><br><span class="line"><span class="emphasis">  # here we assume a modified NearestNeighbor class that can take a k as input</span></span><br><span class="line"><span class="emphasis">  Yval_</span>predict = nn.predict(Xval<span class="emphasis">_rows, k = k)</span></span><br><span class="line"><span class="emphasis">  acc = np.mean(Yval_</span>predict == Yval)</span><br><span class="line">  print &#x27;accuracy: %f&#x27; % (acc,)</span><br><span class="line"> </span><br><span class="line">  # keep track of what works on the validation set</span><br><span class="line">  validation<span class="emphasis">_accuracies.append((k, acc))</span></span><br><span class="line"><span class="emphasis"></span></span><br></pre></td></tr></table></figure>
+<p>像 CIFAR-10
+这样的数据集比较大，可以很好地划分出验证集，但是当训练集很小的时候，就不容易划分出一个验证集了，那么我们可以使用交叉验证的方法。不同于直接从训练集中拿出一部分作为验证集，交叉验证通过将训练集均分为几部分，然后每次迭代地从中选取一部分作为验证集。举例来说，假设进行5折交叉验证，即将训练集平均划分为5份，对于某个待验证的超参数，我们迭代使用其中的1份作为验证集，4份作为测试集，一共进行5次准确率的计算，将5次的结果取平均作为这个超参数的准确率。如下如所示就是一个5折交叉验证的结果，横轴为K的选择，竖轴为准确率，可以看到每个K都有5个点，表示进行了5次计算，线条表示平均值的趋势。可以看到K=7是最好的超参数。</p>
+<p><img src="/CS231n/1/6.jpg" /></p>
+<p>不过通常来说，在实践中我们会尽力避免使用交叉验证，因为使用交叉验证会造成很多的计算，造成性能浪费。一般我们会选择训练集的
+50%-90%作为训练集，剩下作为验证集，具体的划分和选择由训练集大小以及需要验证的超参数数量决定。</p>
+<h2 id="knn优缺点">2.5 KNN优缺点</h2>
+<p>KNN算法的最大优点就是实现和理解起来很简单，并且分类器无需训练时间，只需要将训练集存储下来，然后在预测的时候将待预测的图片与训练集中的图片进行比较。但这就导致了，KNN的预测时间与训练集的大小正相关，且预测时间很长。这是很不好的，我们希望的是，一个模型的训练时间可以比较长，但是训练结束后，预测的时间要尽量短，这样在实际应用中才比较方便。KNN模型有时候可能是一个好的选择，尤其是在数据维度很小的情况下，但是它也有很致命的问题。前面介绍了图片识别问题的挑战，受图片的大小、背景、光线等因素，同样一个物体可能在像素表示上大相径庭。如下图的例子，四张图片都是同一个人脸，但是每个位置的像素值完全不同，这也导致采用像素点间距离之和作为判别标准的KNN模型变得十分不准确。换一个角度，除了对于同一个物体可能会分辨错误，对于不同的物体KNN也可能将其归为一类，因为KNN认为这些图片在像素上是十分相近的，但是在语义上，这些图片可能完全不同。</p>
+<p><img src="/CS231n/1/7.jpg" /></p>
 
       </div>
     </div>
